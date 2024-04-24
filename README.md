@@ -1,0 +1,1 @@
+# azure_task_11_deploy_vm_availability_set
