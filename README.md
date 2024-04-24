@@ -58,7 +58,7 @@ If you are a Windows user, before running this command, please also run the foll
 
 ## Requirements
 
-In this task, you will need to write and run a Powershell script, which deploys 2 Virtual Machines across 2 distinct availability zones: 
+In this task, you will need to write and run a Powershell script, which deploys 2 Virtual Machines into an availability set: 
 
 1. Write your script code to the file 'task.ps1' in this repository:
     
