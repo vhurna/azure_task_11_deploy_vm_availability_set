@@ -5,7 +5,7 @@ param(
 
 # default script values
 $rgName = "mate-azure-task-11"
-$taskName = "task9"
+$taskName = "task11"
 
 $containerName = "task-artifacts"
 $resourcesTemplateName = "exported-template.json"
