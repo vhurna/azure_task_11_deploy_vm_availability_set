@@ -2,7 +2,7 @@
 
 Deploying VMs across availability zones gives you the best SLA you could get for the VMs in Azure — 99.99. Unfortunately, you [can use availability zones](https://learn.microsoft.com/en-us/azure/reliability/availability-zones-service-support#azure-regions-with-availability-zone-support) only in 32 out of 39 Azure regions (at the moment of creating this course). For regions where availability zones are not supported, the only workaround to increase VM availability is to use [Availability Sets](https://learn.microsoft.com/en-us/azure/virtual-machines/availability-set-overview).  
 
-For two VMs deployed to an availability set, you will get a 99.95% uptime SLA. This means that both VMs can be unavailable at the same moment for no longer than 21.6 minutes each month. In this task, you will practice deploying VMs to an availability set. 
+You will get a 99.95% uptime SLA for two VMs deployed to an availability set. This means that both VMs can be unavailable at the same moment for no longer than 21.6 minutes each month. In this task, you will practice deploying VMs to an availability set. 
 
 ## Prerequisites
 
