@@ -37,7 +37,7 @@ Write-Host "Creating virtual network $virtualNetworkName with subnet $subnetName
 $subnet = New-AzVirtualNetworkSubnetConfig `
     -Name $subnetName `
     -AddressPrefix $subnetAddressPrefix `
-    -NetworkSecurityGroup $nsg  # Associate NSG with subnet
+    -NetworkSecurityGroup $nsg
 
 $vnet = New-AzVirtualNetwork `
     -Name $virtualNetworkName `
@@ -75,11 +75,10 @@ for ($i = 1; $i -le 2; $i++) {
         -Location $location `
         -SubnetId $vnet.Subnets[0].Id
     
-    # Create VM configuration with SSH key
+    # Create VM configuration
     $vmConfig = New-AzVMConfig `
         -VMName $vmNameWithNumber `
-        -VMSize $vmSize `
-        -AvailabilitySetId $avSet.Id |
+        -VMSize $vmSize |
         Set-AzVMOperatingSystem `
             -Linux `
             -ComputerName $vmNameWithNumber `
@@ -97,6 +96,11 @@ for ($i = 1; $i -le 2; $i++) {
         -VM $vmConfig `
         -KeyData $sshKeyPublicKey `
         -Path "/home/azureuser/.ssh/authorized_keys"
+    
+    # Assign to availability set
+    $vmConfig.AvailabilitySetReference = @{
+        Id = $avSet.Id
+    }
     
     # Create the VM
     New-AzVM `
