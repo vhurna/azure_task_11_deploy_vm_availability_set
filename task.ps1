@@ -68,45 +68,17 @@ for ($i = 1; $i -le 2; $i++) {
     $vmNameWithNumber = "$vmName-$i"
     Write-Host "Creating VM $vmNameWithNumber in availability set..."
     
-    # Create network interface
-    $nic = New-AzNetworkInterface `
-        -Name "$vmNameWithNumber-nic" `
+    # Create VM with explicit availability set assignment
+    New-AzVm `
         -ResourceGroupName $resourceGroupName `
+        -Name $vmNameWithNumber `
         -Location $location `
-        -SubnetId $vnet.Subnets[0].Id
-    
-    # Create VM configuration
-    $vmConfig = New-AzVMConfig `
-        -VMName $vmNameWithNumber `
-        -VMSize $vmSize |
-        Set-AzVMOperatingSystem `
-            -Linux `
-            -ComputerName $vmNameWithNumber `
-            -DisablePasswordAuthentication |
-        Set-AzVMSourceImage `
-            -PublisherName "Canonical" `
-            -Offer "0001-com-ubuntu-server-jammy" `
-            -Skus "22_04-lts" `
-            -Version "latest" |
-        Add-AzVMNetworkInterface `
-            -Id $nic.Id
-    
-    # Add SSH key to VM configuration
-    Add-AzVMSshPublicKey `
-        -VM $vmConfig `
-        -KeyData $sshKeyPublicKey `
-        -Path "/home/azureuser/.ssh/authorized_keys"
-    
-    # Assign to availability set
-    $vmConfig.AvailabilitySetReference = @{
-        Id = $avSet.Id
-    }
-    
-    # Create the VM
-    New-AzVM `
-        -ResourceGroupName $resourceGroupName `
-        -Location $location `
-        -VM $vmConfig
+        -VirtualNetworkName $virtualNetworkName `
+        -SubnetName $subnetName `
+        -Image $vmImage `
+        -Size $vmSize `
+        -AvailabilitySetName $availabilitySetName `
+        -SshKeyName $sshKeyName
 }
 
 Write-Host "`n✅ Successfully deployed two VMs ($vmName-1, $vmName-2) in availability set '$availabilitySetName'."
