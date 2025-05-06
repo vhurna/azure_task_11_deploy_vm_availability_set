@@ -32,12 +32,11 @@ $nsg = New-AzNetworkSecurityGroup `
     -Location $location `
     -SecurityRules $nsgRuleSSH, $nsgRuleHTTP
 
-# Create virtual network and subnet with NSG association
+# Create virtual network and subnet
 Write-Host "Creating virtual network $virtualNetworkName with subnet $subnetName..."
 $subnet = New-AzVirtualNetworkSubnetConfig `
     -Name $subnetName `
-    -AddressPrefix $subnetAddressPrefix `
-    -NetworkSecurityGroup $nsg
+    -AddressPrefix $subnetAddressPrefix
 
 $vnet = New-AzVirtualNetwork `
     -Name $virtualNetworkName `
@@ -68,17 +67,42 @@ for ($i = 1; $i -le 2; $i++) {
     $vmNameWithNumber = "$vmName-$i"
     Write-Host "Creating VM $vmNameWithNumber in availability set..."
     
-    # Create VM with explicit availability set assignment
-    New-AzVm `
+    # Create network interface with NSG association
+    $nic = New-AzNetworkInterface `
+        -Name "$vmNameWithNumber-nic" `
         -ResourceGroupName $resourceGroupName `
-        -Name $vmNameWithNumber `
         -Location $location `
-        -VirtualNetworkName $virtualNetworkName `
-        -SubnetName $subnetName `
-        -Image $vmImage `
-        -Size $vmSize `
-        -AvailabilitySetName $availabilitySetName `
-        -SshKeyName $sshKeyName
+        -SubnetId $vnet.Subnets[0].Id `
+        -NetworkSecurityGroupId $nsg.Id
+    
+    # Create VM configuration
+    $vmConfig = New-AzVMConfig `
+        -VMName $vmNameWithNumber `
+        -VMSize $vmSize `
+        -AvailabilitySetId $avSet.Id |
+        Set-AzVMOperatingSystem `
+            -Linux `
+            -ComputerName $vmNameWithNumber `
+            -DisablePasswordAuthentication |
+        Set-AzVMSourceImage `
+            -PublisherName "Canonical" `
+            -Offer "0001-com-ubuntu-server-jammy" `
+            -Skus "22_04-lts" `
+            -Version "latest" |
+        Add-AzVMNetworkInterface `
+            -Id $nic.Id
+    
+    # Add SSH key using correct parameter
+    $vmConfig = Add-AzVMSshPublicKey `
+        -VM $vmConfig `
+        -KeyData $sshKeyPublicKey `
+        -Path "/home/azureuser/.ssh/authorized_keys"
+    
+    # Create the VM
+    New-AzVM `
+        -ResourceGroupName $resourceGroupName `
+        -Location $location `
+        -VM $vmConfig
 }
 
 Write-Host "`n✅ Successfully deployed two VMs ($vmName-1, $vmName-2) in availability set '$availabilitySetName'."
